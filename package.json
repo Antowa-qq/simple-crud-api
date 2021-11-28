@@ -6,7 +6,7 @@
   "scripts": {
     "start:dev": "cross-env NODE_ENV=dev nodemon index.js",
     "test": "cross-env NODE_ENV=test jest",
-    "start:prod": "npx webpack build --config webpack.common.js & node ./dist/app.js"
+    "start:prod": "webpack --config webpack.prod.js && node ./dist/main.js"
   },
   "repository": {
     "type": "git",
@@ -23,7 +23,8 @@
     "cross-env": "^7.0.3",
     "dotenv": "^10.0.0",
     "uuid": "^8.3.2",
-    "webpack": "^5.64.4"
+    "webpack": "^5.64.4",
+    "webpack-cli": "^4.9.1"
   },
   "devDependencies": {
     "jest": "^27.3.1",
