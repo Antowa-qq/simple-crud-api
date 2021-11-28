@@ -1,9 +1,6 @@
 const http = require('http');
 const uuid = require('uuid');
-let persons = [
-  { id: '05bbe0ee-bbf3-45b7-8b61-205b43c61071', name: 'Антон', age: 10, hobbies: [] },
-  { id: '372541c5-0fd8-4992-ba76-a6dca5868abe', name: 'Артем', age: 12, hobbies: ['1', '2', '3'] },
-];
+let persons = [];
 
 const validateCreatePerson = (body) => {
   if (body.name === undefined) {
@@ -43,26 +40,7 @@ const responseTemplate = (res, code, resData) => {
 
 const server = http.createServer((req, res) => {
   const [_, resource, id] = req.url.split('/');
-  console.log(resource, id, req.method);
-  console.log(resource === 'person');
-  console.log(req.url);
-  // validate url /person && params >= 2 &&
-  // switch (req.url) {
-  //   case `/${resource}/${id}`:
-  //     break;
-
-  //   default:
-  //     break;
-  // }
-
-  // GET, POST /person
-  // DELETE, PUT, GET /person/{personId}
-  // console.log(req.url.split('/'));
-
-  // id valid = > break
-  // person valid => break
-  //
-
+  
   if (resource !== 'person' || req.url.split('/') > 3) {
     res.writeHead(404, { 'Content-type': 'application/json' });
     res.write(JSON.stringify({ error: `Invalid path` }));
@@ -74,7 +52,7 @@ const server = http.createServer((req, res) => {
     case 'GET': {
       if (req.url === `/${resource}`) {
         res.writeHead(200, { 'Content-type': 'application/json' });
-        res.write(JSON.stringify({ payload: { persons } }));
+        res.write(JSON.stringify({ persons }));
         res.end();
         break;
       }
@@ -125,7 +103,7 @@ const server = http.createServer((req, res) => {
             res.end();
           }
         } catch (e) {
-          console.log(e);
+          // console.log(e);
           res.writeHead(400, { 'Content-type': 'application/json' });
           res.write(JSON.stringify({ error: `Invalid user data` }));
           res.end();
@@ -162,7 +140,6 @@ const server = http.createServer((req, res) => {
               res.end();
             }
           } catch (e) {
-            console.log(e);
             res.writeHead(400, { 'Content-type': 'application/json' });
             res.write(JSON.stringify({ error: `Invalid user data` }));
             res.end();
@@ -208,5 +185,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5500;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+
+module.exports = { server };
