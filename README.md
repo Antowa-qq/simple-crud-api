@@ -3,7 +3,10 @@
 2. Go to the folder with the repository 
 3. Go to the branch ```api-in-memory```
 4. Install dependencies with ``` npm i ```
-5. Run the project in development mode using the ``` npm run start:dev``` command, run the project in testing mode using the ``` npm run test``` command 
+5. Run the project :  
+      * development mode using the ``` npm run start:dev``` command
+      * production mode using the ``` npm run start:prod``` command
+      * testing mode using the ``` npm run test``` command 
 
 # How to use
 Basic route of attachment for this app localhost:5000. For get, put, delete methods you need to use id format uuid.
