@@ -1,5 +1,6 @@
 const http = require('http');
 const uuid = require('uuid');
+const { METHODS } = require('./constans/methods');
 let persons = [];
 
 const validateCreatePerson = (body) => {
@@ -40,7 +41,7 @@ const responseTemplate = (res, code, resData) => {
 
 const server = http.createServer((req, res) => {
   const [_, resource, id] = req.url.split('/');
-  
+
   if (resource !== 'person' || req.url.split('/') > 3) {
     res.writeHead(404, { 'Content-type': 'application/json' });
     res.write(JSON.stringify({ error: `Invalid path` }));
@@ -49,7 +50,7 @@ const server = http.createServer((req, res) => {
   }
 
   switch (req.method) {
-    case 'GET': {
+    case METHODS.GET: {
       if (req.url === `/${resource}`) {
         res.writeHead(200, { 'Content-type': 'application/json' });
         res.write(JSON.stringify({ persons }));
@@ -79,7 +80,7 @@ const server = http.createServer((req, res) => {
       }
     }
 
-    case 'POST': {
+    case METHODS.POST: {
       let body = '';
 
       req.on('data', (d) => {
@@ -112,7 +113,7 @@ const server = http.createServer((req, res) => {
       break;
     }
 
-    case 'PUT': {
+    case METHODS.PUT: {
       if (uuid.validate(id)) {
         let body = '';
 
@@ -154,7 +155,7 @@ const server = http.createServer((req, res) => {
       }
     }
 
-    case 'DELETE': {
+    case METHODS.DELETE: {
       if (uuid.validate(id)) {
         const person = persons.find((p) => p.id === id);
         if (person) {
@@ -185,7 +186,7 @@ const server = http.createServer((req, res) => {
   }
 });
 
-const PORT = process.env.PORT || 5500;
+const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 
 module.exports = { server };

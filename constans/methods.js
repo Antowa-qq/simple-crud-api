@@ -4,3 +4,4 @@ const METHODS = {
   PUT: 'PUT',
   DELETE: 'DELETE',
 };
+module.exports = { METHODS };
