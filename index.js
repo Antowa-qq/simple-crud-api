@@ -20,37 +20,127 @@ const validateCreatePerson = (body) => {
   return '';
 };
 
-// const responseTemplate = (res, code, resData) => {
-//   res.writeHead(code, { 'Content-type': 'application/json' });
-//   res.write(resData);
-//   res.end();
-//   // return;
-// };
-
 const server = http.createServer((req, res) => {
-  const [_, resource, id] = req.url.split('/');
+  try {
+    const [_, resource, id] = req.url.split('/');
 
-  if (resource !== 'person' || req.url.split('/').length > 3) {
-    res.writeHead(404, { 'Content-type': 'application/json' });
-    res.write(JSON.stringify({ error: `Invalid path` }));
-    res.end();
-    return;
-  }
+    if (resource !== 'person' || req.url.split('/').length > 3) {
+      res.writeHead(404, { 'Content-type': 'application/json' });
+      res.write(JSON.stringify({ error: `Invalid path` }));
+      res.end();
+      return;
+    }
+    switch (req.method) {
+      case METHODS.GET: {
+        if (req.url === `/${resource}`) {
+          res.writeHead(200, { 'Content-type': 'application/json' });
+          res.write(JSON.stringify({ persons }));
+          res.end();
+          break;
+        }
 
-  switch (req.method) {
-    case METHODS.GET: {
-      if (req.url === `/${resource}`) {
-        res.writeHead(200, { 'Content-type': 'application/json' });
-        res.write(JSON.stringify({ persons }));
-        res.end();
+        if (req.url === `/${resource}/${id}`) {
+          if (uuid.validate(id)) {
+            const person = persons.find((p) => p.id === id);
+            if (person) {
+              res.writeHead(200, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify({ payload: { person } }));
+              res.end();
+            } else {
+              res.writeHead(404, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify({ error: 'Person is not found' }));
+              res.end();
+            }
+            break;
+          } else {
+            res.writeHead(400, { 'Content-type': 'application/json' });
+            res.write(JSON.stringify({ error: 'Id is not valid' }));
+            res.end();
+            break;
+          }
+        }
+      }
+
+      case METHODS.POST: {
+        let body = '';
+
+        req.on('data', (d) => {
+          body += d.toString();
+        });
+
+        req.on('end', () => {
+          try {
+            const data = JSON.parse(body);
+            const validate = validateCreatePerson(data);
+            if (validate) {
+              res.writeHead(400, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify({ error: validate }));
+              res.end();
+            }
+            if (!validate) {
+              const newPerson = { id: uuid.v4(), ...data };
+              persons.push(newPerson);
+              res.writeHead(201, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify(newPerson));
+              res.end();
+            }
+          } catch (e) {
+            res.writeHead(400, { 'Content-type': 'application/json' });
+            res.write(JSON.stringify({ error: `Invalid user data` }));
+            res.end();
+          }
+        });
         break;
       }
 
-      if (req.url === `/${resource}/${id}`) {
+      case METHODS.PUT: {
+        if (uuid.validate(id)) {
+          let body = '';
+
+          req.on('data', (d) => {
+            body += d.toString();
+          });
+
+          req.on('end', () => {
+            try {
+              const data = JSON.parse(body);
+              const person = persons.find((p) => p.id === id);
+              if (person) {
+                persons = persons.map((p) => {
+                  if (p.id === id) {
+                    return { ...p, ...data };
+                  }
+                  return p;
+                });
+                res.writeHead(200, { 'Content-type': 'application/json' });
+                res.write(JSON.stringify({ payload: { person: { ...person, ...data } } }));
+                res.end();
+              } else {
+                res.writeHead(404, { 'Content-type': 'application/json' });
+                res.write(JSON.stringify({ error: 'Person is not found' }));
+                res.end();
+              }
+            } catch (e) {
+              res.writeHead(400, { 'Content-type': 'application/json' });
+              res.write(JSON.stringify({ error: `Invalid user data` }));
+              res.end();
+            }
+          });
+          break;
+        } else {
+          res.writeHead(400, { 'Content-type': 'application/json' });
+          res.write(JSON.stringify({ error: 'Id is not valid' }));
+          res.end();
+          break;
+        }
+      }
+
+      case METHODS.DELETE: {
         if (uuid.validate(id)) {
           const person = persons.find((p) => p.id === id);
           if (person) {
-            res.writeHead(200, { 'Content-type': 'application/json' });
+            persons = persons.filter((p) => p.id !== id);
+            res.writeHead(240, { 'Content-type': 'application/json' });
             res.write(JSON.stringify({ payload: { person } }));
             res.end();
           } else {
@@ -66,110 +156,18 @@ const server = http.createServer((req, res) => {
           break;
         }
       }
-    }
 
-    case METHODS.POST: {
-      let body = '';
-
-      req.on('data', (d) => {
-        body += d.toString();
-      });
-
-      req.on('end', () => {
-        try {
-          const data = JSON.parse(body);
-          const validate = validateCreatePerson(data);
-          if (validate) {
-            res.writeHead(400, { 'Content-type': 'application/json' });
-            res.write(JSON.stringify({ error: validate }));
-            res.end();
-          }
-          if (!validate) {
-            const newPerson = { id: uuid.v4(), ...data };
-            persons.push(newPerson);
-            res.writeHead(201, { 'Content-type': 'application/json' });
-            res.write(JSON.stringify(newPerson));
-            res.end();
-          }
-        } catch (e) {
-          res.writeHead(400, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify({ error: `Invalid user data` }));
-          res.end();
-        }
-      });
-      break;
-    }
-
-    case METHODS.PUT: {
-      if (uuid.validate(id)) {
-        let body = '';
-
-        req.on('data', (d) => {
-          body += d.toString();
-        });
-
-        req.on('end', () => {
-          try {
-            const data = JSON.parse(body);
-            const person = persons.find((p) => p.id === id);
-            if (person) {
-              persons = persons.map((p) => {
-                if (p.id === id) {
-                  return { ...p, ...data };
-                }
-                return p;
-              });
-              res.writeHead(200, { 'Content-type': 'application/json' });
-              res.write(JSON.stringify({ payload: { person: { ...person, ...data } } }));
-              res.end();
-            } else {
-              res.writeHead(404, { 'Content-type': 'application/json' });
-              res.write(JSON.stringify({ error: 'Person is not found' }));
-              res.end();
-            }
-          } catch (e) {
-            res.writeHead(400, { 'Content-type': 'application/json' });
-            res.write(JSON.stringify({ error: `Invalid user data` }));
-            res.end();
-          }
-        });
-        break;
-      } else {
-        res.writeHead(400, { 'Content-type': 'application/json' });
-        res.write(JSON.stringify({ error: 'Id is not valid' }));
+      default: {
+        res.writeHead(404, { 'Content-type': 'application/json' });
+        res.write(JSON.stringify({ error: `Invalid path ` }));
         res.end();
         break;
       }
     }
-
-    case METHODS.DELETE: {
-      if (uuid.validate(id)) {
-        const person = persons.find((p) => p.id === id);
-        if (person) {
-          persons = persons.filter((p) => p.id !== id);
-          res.writeHead(240, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify({ payload: { person } }));
-          res.end();
-        } else {
-          res.writeHead(404, { 'Content-type': 'application/json' });
-          res.write(JSON.stringify({ error: 'Person is not found' }));
-          res.end();
-        }
-        break;
-      } else {
-        res.writeHead(400, { 'Content-type': 'application/json' });
-        res.write(JSON.stringify({ error: 'Id is not valid' }));
-        res.end();
-        break;
-      }
-    }
-
-    default: {
-      res.writeHead(404, { 'Content-type': 'application/json' });
-      res.write(JSON.stringify({ error: `Invalid path ` }));
-      res.end();
-      break;
-    }
+  } catch (e) {
+    res.writeHead(500, { 'Content-type': 'application/json' });
+    res.write(JSON.stringify({ error: `Invalid user data` }));
+    res.end();
   }
 });
 
