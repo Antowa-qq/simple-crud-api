@@ -2,6 +2,10 @@ const { server } = require('../../index');
 const uuid = require('uuid');
 const request = require('supertest');
 
+afterAll(() => {
+  server.close();
+});
+
 describe('GET /person ', () => {
   test('It should respond with empty an array of persons', async () => {
     const response = await request(server).get('/person');

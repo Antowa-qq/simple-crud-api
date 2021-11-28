@@ -1,3 +1,4 @@
+require('dotenv').config({ path: `./config/.${process.env.NODE_ENV}.env` });
 const http = require('http');
 const uuid = require('uuid');
 const { METHODS } = require('./constans/methods');
@@ -19,30 +20,17 @@ const validateCreatePerson = (body) => {
   return '';
 };
 
-const findPerson = (id) => {};
-
-const isPersonExists = () => {};
-
-const getReauestData = async (req) => {};
-
-const responseTemplate = (res, code, resData) => {
-  res.writeHead(code, { 'Content-type': 'application/json' });
-  res.write(resData);
-  res.end();
-  // return;
-};
-
-// try {
-// } catch (e) {
-//   res.writeHead(500, { 'Content-type': 'application/json' });
-//   res.write(JSON.stringify({ error: `Invalid err` }));
+// const responseTemplate = (res, code, resData) => {
+//   res.writeHead(code, { 'Content-type': 'application/json' });
+//   res.write(resData);
 //   res.end();
-// }
+//   // return;
+// };
 
 const server = http.createServer((req, res) => {
   const [_, resource, id] = req.url.split('/');
 
-  if (resource !== 'person' || req.url.split('/') > 3) {
+  if (resource !== 'person' || req.url.split('/').length > 3) {
     res.writeHead(404, { 'Content-type': 'application/json' });
     res.write(JSON.stringify({ error: `Invalid path` }));
     res.end();
@@ -104,7 +92,6 @@ const server = http.createServer((req, res) => {
             res.end();
           }
         } catch (e) {
-          // console.log(e);
           res.writeHead(400, { 'Content-type': 'application/json' });
           res.write(JSON.stringify({ error: `Invalid user data` }));
           res.end();
